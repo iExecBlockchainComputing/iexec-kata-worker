@@ -53,12 +53,16 @@ if [ $(dpkg-query -W -f='${Status}' kata-runtime 2>/dev/null | grep -c "ok insta
     curl -sL  http://download.opensuse.org/repositories/home:/katacontainers:/release/xUbuntu_$(lsb_release -rs)/Release.key | apt-key add -
     apt-get update
     apt-get -y install kata-runtime kata-proxy kata-shim
-
+    echo "-----------------------------------------"
+    echo "Checking kata containers support..."
     kata-runtime kata-check
     checkExitStatus $? "Failed to launch Kata containers..."
-
+    echo "-----------------------------------------"
     # Configuring docker daemon
     echo "Configuring docker daemon..."
+    if [ -f /etc/docker/daemon.json ]; then
+      mv /etc/docker/daemon.json /etc/docker/daemon.json.bak
+    fi
     cat >/etc/docker/daemon.json  << EOF
 {
   "default-runtime": "kata-runtime",
@@ -69,19 +73,20 @@ if [ $(dpkg-query -W -f='${Status}' kata-runtime 2>/dev/null | grep -c "ok insta
   }
 }
 EOF
-
+    echo "-----------------------------------------"
     # Restarting docker daemon
     echo "Restaring docker daemon..."
     systemctl daemon-reload
     systemctl restart docker
 
+else
+    # Check Kata containers
+    echo "Checking kata containers support..."
+    kata-runtime kata-check
+    checkExitStatus $? "Failed to launch Kata containers..."
+    echo "-----------------------------------------"
 fi
 
-# Check Kata containers
-echo "Checking kata containers support..."
-kata-runtime kata-check
-checkExitStatus $? "Failed to launch Kata containers..."
-echo "-----------------------------------------"
 
 # Configure worker tasks vCPU and RAM
 while [ "$answerconfig" != "yes" ] && [ "$answerconfig" != "no" ]; do
@@ -95,28 +100,24 @@ if [ "$answerconfig" == "yes" ]; then
   echo "Configuring worker task vCPU number and RAM..."
 
   # Get vCPU number
-  while [[ ! $vCPUNumber =~ ^[0-9]+$ ]]; do
+  while [[ ! $vCPUNumber =~ ^[0-9]+$ ]] || [[ $vCPUNumber -lt 1 ]]; do
     read -p "Enter task vCPU number (min. 1): " vCPUNumber
-    if [ $vCPUNumber -lt 1 ]; then
-      vCPUNumber=""
-    fi
   done
   echo "All tasks will be launched with $vCPUNumber CPUs."
   echo "-----------------------------------------"
 
   # Get RAM 
-  while [[ ! $ram =~ ^[0-9]+$ ]]; do
+  while [[ ! $ram =~ ^[0-9]+$ ]] || [[ $ram -lt 2048 ]]; do
     read -p "Enter task RAM in megabytes (min. 2048): " ram
-    if [ $ram -lt 2048 ]; then
-      ram=""
-    fi
   done
 
   # Writing Kata containers config
   sed -i "s/default_vcpus\ =\ [0-9]*/default_vcpus\ =\ $vCPUNumber/g" /usr/share/defaults/kata-containers/configuration.toml
   sed -i "s/default_maxvcpus\ =\ [0-9]*/default_maxvcpus\ =\ $vCPUNumber/g" /usr/share/defaults/kata-containers/configuration.toml
   sed -i -E "s/#?default_memory\ =\ [0-9]*/default_memory\ =\ $ram/g" /usr/share/defaults/kata-containers/configuration.toml
+  echo "-----------------------------------------"
 fi
+
 
 # Pulling iExec worker
 docker pull iexechub/worker:latest
