@@ -11,9 +11,8 @@ You will also be able to configure vCPU number and RAM quantity which will be us
 
 ## Requirements
 ### Hardware
-* Intel VTX 
-* ARM Hyp Mode
-* IBM Power Systems
+* Bare Metal (Intel VTX, ARM Hyp Mode, IBM Power Systems)
+* Virtualized environment with nested virtualization enabled
 
 ### OS
 * Ubuntu
