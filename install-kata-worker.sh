@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Check if script was launched as root
+if [[ $EUID -ne 0 ]]; then
+   echo "This script must be run as root"
+   exit 1
+fi
+
 # Function which checks exit status and stops execution
 function checkExitStatus() {
   if [ $1 -eq 0 ]; then
