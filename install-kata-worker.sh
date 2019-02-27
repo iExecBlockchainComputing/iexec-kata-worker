@@ -125,6 +125,21 @@ if [ "$answerconfig" == "yes" ]; then
 fi
 
 
+# Configure 
+while [ "$answervsyscall" != "yes" ] && [ "$answervsyscall" != "no" ]; do
+	echo "Activate the support of legacy vsyscalls?"
+    read -p "(You will be able to launch obsolete containers but it can be less secure) [yes/no] " answervsyscall
+    echo "-----------------------------------------"
+done
+
+
+if [ "$answervsyscall" == "yes" ]; then
+	echo "Setting VM kernel params..."
+	sed -i -E "s/kernel_params\ =\ \".*\"/kernel_params\ =\ \"vsyscall=emulate\"/g" /usr/share/defaults/kata-containers/configuration.toml
+	echo "-----------------------------------------"
+fi 
+
+
 # Pulling iExec worker
 docker pull iexechub/worker:latest
 
