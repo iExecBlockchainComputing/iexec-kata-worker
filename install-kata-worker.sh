@@ -49,8 +49,8 @@ fi
 # Installing Kata Containers
 if [ $(dpkg-query -W -f='${Status}' kata-runtime 2>/dev/null | grep -c "ok installed") -eq 0 ] ; then
     echo "Installing Kata containers..."
-    sh -c "echo 'deb http://download.opensuse.org/repositories/home:/katacontainers:/release/xUbuntu_$(lsb_release -rs)/ /' > /etc/apt/sources.list.d/kata-containers.list"
-    curl -sL  http://download.opensuse.org/repositories/home:/katacontainers:/release/xUbuntu_$(lsb_release -rs)/Release.key | apt-key add -
+    sh -c "echo 'deb http://download.opensuse.org/repositories/home:/katacontainers:/releases:/$(arch):/master/xUbuntu_$(lsb_release -rs)/ /' > /etc/apt/sources.list.d/kata-containers.list"
+    curl -sL  http://download.opensuse.org/repositories/home:/katacontainers:/releases:/$(arch):/master/xUbuntu_$(lsb_release -rs)/Release.key | apt-key add -    
     apt-get update
     apt-get -y install kata-runtime kata-proxy kata-shim
     echo "-----------------------------------------"
